@@ -1,10 +1,6 @@
 <?php
-/** Updated 20170511
- * TODO - store names for Grids in UnitNames table?, finish slip dupes,  
- * Add Voter tab for labels
- *	Add grids and voters - built from table?
- * Implement partial run error checking
- * Add labels page with voter?
+/** Updated 20170513
+ * TODO - finish slip dupes, email logrun 
  * package    PAI_COBList
  * @license        Copyright © 2017 Pathfinder Associates, Inc.
  */
@@ -194,6 +190,7 @@ class COBList
 			$this->BuildSlip();
 			$this->BuildStaff();
 			$this->BuildErr();
+			$this->BuildGrids();
 		}
 			// now create Excel file
 		$this->CreateFile();
@@ -345,46 +342,22 @@ class COBList
 	{
 		//setup Listing columns for dbRes & dbRenter that was build in BuildAddress
 		$this->hdrRes = array('Last Name'=>'string', 'First Name'=>'string','Unit'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string');
-		/* 		$this->hdrRes = array
-			(
-			array(date('m/d/y')=>'date','Condo on the Bay Owner & Renter Listing '=>'string'),
-			array('Last Name'=>'string', 'First Name'=>'string','Unit'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string')
-			);
- */		$this->hdrRenter = array('Lease End'=>'string', 'Lease Start'=>'string', 'Unit'=>'string','Last Name'=>'string', 'First Name'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string');
-/* 		$this->hdrRenter = array
-			(
-			array(date('m/d/y')=>'date','Condo on the Bay Renter Listing '=>'string'),
-			array('Lease End'=>'date', 'Lease Start'=>'date', 'Unit'=>'string','Last Name'=>'string', 'First Name'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string')
-			);
- */		$this->hdrPets = array('Unit'=>'string','Last Name'=>'string', 'First Name'=>'string','Pets & WSD/ESA'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string');
-/* 		$this->hdrPets = array
-			(
-			array(date('m/d/y')=>'date','Condo on the Bay Pets & WSD/ESA Listing '=>'string'),
-			array('Unit'=>'string','Last Name'=>'string', 'First Name'=>'string','Pets & WSD/ESA'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string')
-			);
- */		return;
+		$this->hdrRenter = array('Lease End'=>'string', 'Lease Start'=>'string', 'Unit'=>'string','Last Name'=>'string', 'First Name'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string');
+		$this->hdrPets = array('Unit'=>'string','Last Name'=>'string', 'First Name'=>'string','Pets & WSD/ESA'=>'string','Home Phone'=>'string','Cell Phone'=>'string','Email'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string');
+		return;
 	}
 
 	function BuildStaff()
 	{
 		//setup columns for dbStaff that was build in BuildAddress
 		$this->hdrStaff=array('Last Name'=>'string', 'First Name'=>'string','Email'=>'string','Access'=>'string');
-/* 		$this->hdrStaff = array(
-			array(date('m/d/y')=>'date','Condo on the Bay Staff Listing '=>'string'),
-			array('Last Name'=>'string', 'First Name'=>'string','Email'=>'string','Access'=>'string')
-			);
- */		return;
+		return;
 	}
 
 	function BuildErr()
 	{
 		//setup Error columns for dbErr
 		$this->hdrErr = array('Level'=>'string', 'Function'=>'string','Unit'=>'string','Name'=>'string','Message'=>'string');
-/* 		$this->hdrErr = array(
-			array(date('m/d/y')=>'date','Condo on the Bay Error Listing '=>'string'),
-			array('Level'=>'string', 'Function'=>'string','Unit'=>'string','Name'=>'string','Message'=>'string')
-			);
- */		sort($this->dbErr);
 		return;
 	}
 
@@ -394,11 +367,7 @@ class COBList
 		// build header
 		$temp = ($this->showInfo) ? 'Internal':'External';
 		$this->hdrSlip = array('Dock'=>'string', 'Slip'=>'string','Class'=>'string','Rate'=>'string','Type'=>'string','Condition'=>'string', 'Last Name'=>'string','Unit'=>'string','Lift'=>'string','Phone'=>'string','Email'=>'string');
-/* 		$this->hdrSlip = array (
-			array(date('m/d/y')=>'date',$temp=>'string','Condo on the Bay Slip Listing '=>'string'),
-			array('Dock'=>'string', 'Slip'=>'string','Class'=>'string','Rate'=>'dollar','Type'=>'string','Condition'=>'string', 'Last Name'=>'string','Unit'=>'string','Lift'=>'string','Phone'=>'string','Email'=>'string')
-			);
- */		$this->hdrWait = array('Date'=>'string','Name'=>'string','Unit'=>'string','Number'=>'string');
+		$this->hdrWait = array('Date'=>'string','Name'=>'string','Unit'=>'string','Number'=>'string');
 		
 		// step thru each line of the file
 		foreach ($this->dbUser as $row) {
@@ -506,6 +475,54 @@ class COBList
 		return;
 	}
 
+	function BuildGrids()
+	{
+		//Build the resident grid
+		//setup grid headers
+		$this->hdrGridT1 = array("Floor"=>"string","Rembrandt-1"=>"string", "Monet-2"=>"string", "Renoir-3"=>"string", "Van Gogh-4"=>"string", "Van Gogh-5"=>"string", "Renoir-6"=>"string", "Monet-7"=>"string", "Cezanne-8"=>"string");
+
+		$this->hdrGridT2 = array("Floor"=>"string","Rembrandt-9"=>"string", "Renoir-10"=>"string", "Renoir-11"=>"string", "Van Gogh-12"=>"string", "Van Gogh-14"=>"string", "Renoir-15"=>"string", "Renoir-16"=>"string", "Rembrandt-17"=>"string");
+
+		//get owner, renter from db
+		$j=0;
+		$i=1;
+		$query1 = $this->pdo->prepare("SELECT Owner, Renter, Floor, Stack
+							FROM UnitMaster 
+							WHERE Bldg LIKE 'Tower%'
+							ORDER BY Floor DESC, Stack ASC");
+		$query1->execute();
+		// now loop thru all units
+		while ($row = $query1->fetch(PDO::FETCH_ASSOC)) {
+			$this->dbGridT1[$j][0] = $row['Floor'];
+			$this->dbGridT2[$j][0] = $row['Floor'];
+			if ($row['Stack']<=8) {
+				$this->dbGridT1[$j][$row['Stack']] = $this->AddToGrid($row);
+			} elseif ($row['Stack'] == 15 && $row['Floor'] == 1) {
+				$this->dbGridT2[$j][6] = " ";
+				$this->dbGridT2[$j][7] = $this->AddToGrid($row);
+			} elseif ($row['Stack']>12) {
+				$this->dbGridT2[$j][$row['Stack']-7] = $this->AddToGrid($row);
+			} else {
+				$this->dbGridT2[$j][$row['Stack']-8] = $this->AddToGrid($row);
+			}
+			$i++;
+			if ($i>16) {
+				$i=1;
+				$j++;
+			}
+		}
+	}
+
+	function AddToGrid($row)
+	{
+		//add owners to front of string and renters in () to back of string and build vVoter array
+		$r = $row['Owner'];
+		if (strlen($row['Renter'])>0) {
+			$r .= " (" . $row['Renter'] . ")";
+		}
+		return $r;
+	}
+
 	function CreateFile() 
 	{
 		// Include the required Class file
@@ -520,6 +537,11 @@ class COBList
 		//setup heading row style
 		$hstyle = array( 'font'=>'Arial','font-size'=>10,'font-style'=>'bold', 'halign'=>'center', 'border'=>'bottom');
 		$h1style = array( 'font'=>'Arial','font-size'=>12,'font-style'=>'bold', 'halign'=>'left', 'border'=>'bottom');
+		
+		//sort
+		sort($this->dbErr);
+		sort($this->dbPets);
+		sort($this->dbRenter);
 
 		//write header then sheet data and output file
 		$writer = new XLSXWriter();
@@ -531,19 +553,19 @@ class COBList
 			$writer->writeSheetRow('Errors',array_keys($this->hdrErr),$hstyle);
 			$writer->writeSheet($this->dbErr,'Errors',$this->hdrErr,true);
 			
-			$writer->setColWidths('Listing',array(20,15,40,20,20,30,20,20));
+			$writer->setColWidths('Listing',array(20,15,20,15,15,30,30,30));
 			$writer->writeSheetHeader('Listing',$this->hdrRes,true);
 			$writer->writeSheetRow('Listing',array(date('m/d/y'),'Condo on the Bay Owner & Renter Listing'),$h1style);
 			$writer->writeSheetRow('Listing',array_keys($this->hdrRes),$hstyle);
 			$writer->writeSheet($this->dbRes,'Listing',$this->hdrRes,true);
 			
-			$writer->setColWidths('Renter',array(12,12,30,15,20,20,20,30,20,20));
+			$writer->setColWidths('Renter',array(12,12,20,15,15,15,15,30,30,30));
 			$writer->writeSheetHeader('Renter',$this->hdrRenter,true);
 			$writer->writeSheetRow('Renter',array(date('m/d/y'),'Condo on the Bay Renter Listing'),$h1style);
 			$writer->writeSheetRow('Renter',array_keys($this->hdrRenter),$hstyle);
 			$writer->writeSheet($this->dbRenter,'Renter',$this->hdrRenter,true);
 			
-			$writer->setColWidths('Pets WSD-ESA',array(20,15,20,50,20,20,30,20,20));
+			$writer->setColWidths('Pets WSD-ESA',array(20,15,15,50,15,15,30,30,30));
 			$writer->writeSheetHeader('Pets WSD-ESA',$this->hdrPets,true);
 			$writer->writeSheetRow('Pets WSD-ESA',array(date('m/d/y'),'Condo on the Bay Pets & WSD/ESA Listing'),$h1style);
 			$writer->writeSheetRow('Pets WSD-ESA',array_keys($this->hdrPets),$hstyle);
@@ -567,11 +589,22 @@ class COBList
 			$writer->writeSheetRow('Staff',array(date('m/d/y'),'Condo on the Bay Staff Listing'),$h1style);
 			$writer->writeSheetRow('Staff',array_keys($this->hdrStaff),$hstyle);
 			$writer->writeSheet($this->dbStaff,'Staff',$this->hdrStaff,true);
+			
+			$writer->setColWidths('Grid T1',array(10,20,20,20,20,20,20,20,20));
+			$writer->writeSheetHeader('Grid T1',$this->hdrGridT1,true);
+			$writer->writeSheetRow('Grid T1',array(date('m/d/y'),'Condo on the Bay T1 Grid'),$h1style);
+			$writer->writeSheetRow('Grid T1',array_keys($this->hdrGridT1),$hstyle);
+			$writer->writeSheet($this->dbGridT1,'Grid T1',$this->hdrGridT1,true);
+			
+			$writer->setColWidths('Grid T2',array(10,20,20,20,20,20,20,20,20));
+			$writer->writeSheetHeader('Grid T2',$this->hdrGridT2,true);
+			$writer->writeSheetRow('Grid T2',array(date('m/d/y'),'Condo on the Bay T2 Grid'),$h1style);
+			$writer->writeSheetRow('Grid T2',array_keys($this->hdrGridT2),$hstyle);
+			$writer->writeSheet($this->dbGridT2,'Grid T2',$this->hdrGridT2,true);
 		}
 
 		$writer->setColWidths('Voters',array(30,40,30,20,15));
 		$writer->writeSheetHeader('Voters',$this->hdrVoter,true);
-		$writer->writeSheetRow('Voters',array(date('m/d/y'),'Condo on the Bay Voter Listing'),$h1style);
 		$writer->writeSheetRow('Voters',array_keys($this->hdrVoter),$hstyle);
 		$writer->writeSheet($this->dbVoter,'Voters',$this->hdrVoter,false);
 		
@@ -593,7 +626,7 @@ class COBList
 
 	
 
-// ----------------------- functions called by routines above -------------------------------
+// ------ functions called by routines above -------------------------------
 	
 	function GetAddress($row) {
 	// returns an array of addr, citystate for mailings based on user settings
@@ -745,8 +778,8 @@ function opendb(&$checkmsg) {
 	//function to open PDO database and return PDO object
 	$host = 'localhost';
 	$db   = 'coblist';
-	$user = 'joedev';
-	$pass = 'jma21';
+	$user = 'cobuser';
+	$pass = 'sarasota888';
 	$charset = 'utf8';
 
 	$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -894,13 +927,15 @@ function GetBestPhone($row){
 }
 
 function GetLeaseDates($row) {
-//FIGURE OUT HOW TO RETURN EXCEL DATES AND SORT DBRENTER
 	// return array of start date and end date and log error
 	$D = explode('-', $row[self::iOfficialVoter]);
 	if (count($D) !== 2) {
 		$temp = 'Wrong lease date format=' . $row[self::iOfficialVoter];
 		$this->addError('5','Lease dates',$row[self::iUnit],$row[self::iUser1LastName],$temp);
 		$D[1] = "Error";
+	} else {
+		$D[0] = date_format(date_create_from_format("m/d/y",$D[0]),"Y-m-d");
+		$D[1] = date_format(date_create_from_format("m/d/y",$D[1]),"Y-m-d");
 	}
 	return $D;
 }
