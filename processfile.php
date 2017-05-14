@@ -1,5 +1,5 @@
 <?php
-// Process COBList 20170513
+// Process COBList 20170514
 include ('PAI_coblist.class.php');
 register_shutdown_function('shutDownFunction');
 
@@ -9,9 +9,11 @@ if ($mCOB->Checkfile($msg)) {
 	$mCOB->fullRun = $_POST['run'];
 	if ($mCOB->ProcessFile($msg)) {
 	} else {
-		echo $msg;
+	error_log ($_SERVER['REMOTE_ADDR'] . '=' . $msg,0);
+	echo $msg;
 	}
 } else {
+	error_log ($_SERVER['REMOTE_ADDR'] . '=' . $msg,0);
 	echo $msg;
 }
 unset($mCOB);
@@ -21,6 +23,7 @@ function shutDownFunction() {
     // fatal error, E_ERROR === 1
     if ($error['type'] === E_ERROR) { 
         //do your stuff
+		error_log ($_SERVER['REMOTE_ADDR'] . '=' . $msg,0);
 		echo "Program failed! Please try again using left menu Run COBList. If it keeps failing notify Chris Barlow.";
     } 
 }
