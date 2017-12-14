@@ -2,7 +2,7 @@
 /** Updated 20170513
  * TODO - finish slip dupes, email logrun 
  * package    PAI_COBList
- * @license        Copyright © 2017 Pathfinder Associates, Inc.
+ * @license        Copyright Â© 2017 Pathfinder Associates, Inc.
  */
 class COBList
 {
@@ -778,8 +778,8 @@ function opendb(&$checkmsg) {
 	//function to open PDO database and return PDO object
 	$host = 'localhost';
 	$db   = 'coblist';
-	$user = 'cobuser';
-	$pass = 'sarasota888';
+	$user = '';
+	$pass = '';
 	$charset = 'utf8';
 
 	$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
