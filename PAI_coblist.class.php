@@ -1,5 +1,5 @@
 <?php
-/** Updated 20170513
+/** Updated 20171214 for waitlist format
  * TODO - finish slip dupes, email logrun 
  * package    PAI_COBList
  * @license        Copyright © 2017 Pathfinder Associates, Inc.
@@ -10,7 +10,7 @@ class COBList
      * Retrieves the CSV file exported by Manage Users and creates the Excel XML COBList
      */   
 	// Private Variables //
-		const iVersion = "3.0.1";
+		const iVersion = "3.0.2";
 		private $dbUser = array();
 		private $hdrUser = array();
 		private $dbRes = array();
@@ -388,13 +388,17 @@ class COBList
 				// check if waitlist and skip
 				if (stripos($slip,"W")!== false) {
 					// now add to WaitList table
-					$wdate = date("Y.m.d",strtotime(substr(trim($slip),3,8)));
+					$wdate = date("Y.m.d",strtotime(substr(trim($slip),2,8)));
+					$wnum = "1";
+					if (strlen(trim($slip))== 12) {
+						$wnum = substr(trim($slip),11,1);
+					} 
 					$sql = "INSERT INTO WaitList (type,unit, names, date, number)
-							VALUES ('" . substr(trim($slip),1,1) . "','" . $row[7] . "', '" . $row[6] . "', '" . $wdate . "', '" . substr(trim($slip),9,1) . "')";
-							// execute the SQL statement - if returns fail then report
+							VALUES ('" . substr(trim($slip),1,1) . "','" . $row[7] . "', '" . $row[6] . "', '" . $wdate . "', '" . $wnum . "')";
+					// execute the SQL statement - if returns fail then report
 					if ($this->pdo->query($sql)){
 					} else {
-						echo "Failed " . $slip . "<br>";
+						error_log ("Failed " . $slip );
 					}
 					
 				} else {
@@ -433,7 +437,7 @@ class COBList
 						// execute the SQL statement - if returns fail then report
 						if ($this->pdo->query($sql)){
 						} else {
-							echo "Failed " . $slip . "<br>";
+							error_log ("Failed " . $slip );
 						}
 					}
 				}
@@ -740,20 +744,20 @@ class COBList
 		//update RunLog table for this run
 		$ip = $_SERVER['REMOTE_ADDR'] ;
 		$sql = "INSERT INTO RunLog (ip,type,records, showinfo)
-				VALUES ('" . $ip  . "','1','" . count($this->dbUser) . "', '" . boolval($this->showInfo) . "')";
+				VALUES ('" . $ip  . "','1','" . count($this->dbUser) . "', '" . intval($this->showInfo) . "')";
 		// execute the SQL statement - if returns fail then report
 		$this->pdo->query($sql);
 		
 		//now email
-		$to      = 'cbarlow@pathfinderassociatesinc.com';
+		$to      = 'webmaster@condoonthebay.com';
 		$subject = 'COBList run';
 		$message = $sql;
-		$headers = 'From: webmaster@condoonthebay.com' . "\r\n" .
-			'Reply-To: webmaster@condoonthebay.com' . "\r\n" .
+		$headers = 'From: cbarlow@pathfinderassociatesinc.com' . "\r\n" .
+			'Reply-To: cbarlow@pathfinderassociatesinc.com' . "\r\n" .
 			'X-Mailer: PHP/' . phpversion();
 		mail($to, $subject, $message, $headers);
 		
-		error_log($sql,1,$to);
+		//error_log($sql,1,$to);
 		
 		return ;
 	}
