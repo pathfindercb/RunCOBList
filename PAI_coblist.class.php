@@ -1,8 +1,9 @@
 <?php
 /** Updated 20171214 for waitlist format
- * TODO - finish slip dupes, email logrun 
+ *	Updated 20171221 Added check for zero owner count in UnitMaster*
+ *	Updated 20180106 Fixed duplicate slip check
  * package    PAI_COBList
- * @license        Copyright Â© 2017 Pathfinder Associates, Inc.
+ * @license        Copyright © 2017 Pathfinder Associates, Inc.
  */
 class COBList
 {
@@ -10,7 +11,7 @@ class COBList
      * Retrieves the CSV file exported by Manage Users and creates the Excel XML COBList
      */   
 	// Private Variables //
-		const iVersion = "3.0.2";
+		const iVersion = "3.0.4";
 		private $dbUser = array();
 		private $hdrUser = array();
 		private $dbRes = array();
@@ -248,6 +249,11 @@ class COBList
 		}
 	} 
 	//check owner count in UnitMaster
+	$query1 = $this->pdo->prepare("SELECT Unit, count, Owner FROM UnitMaster WHERE count = 0");
+	$query1->execute();
+	while ($row = $query1->fetch(PDO::FETCH_ASSOC)) {
+		$this->addError('1','No unit owner!',$row['Unit'],$row['count'],$row['Owner']);
+		}
 	$query1 = $this->pdo->prepare("SELECT Unit, count, Owner FROM UnitMaster WHERE count > 1");
 	$query1->execute();
 	while ($row = $query1->fetch(PDO::FETCH_ASSOC)) {
@@ -363,7 +369,6 @@ class COBList
 
 	function BuildSlip() {
 		// scan dbUser to build Slips and Kayak db and arrays
-//NEED TO MERGE TESTSLIP TO CHECK FOR MULTI UNITS ASSIGNED TO A SLIP
 		// build header
 		$temp = ($this->showInfo) ? 'Internal':'External';
 		$this->hdrSlip = array('Dock'=>'string', 'Slip'=>'string','Class'=>'string','Rate'=>'string','Type'=>'string','Condition'=>'string', 'Last Name'=>'string','Unit'=>'string','Lift'=>'string','Phone'=>'string','Email'=>'string');
@@ -427,9 +432,30 @@ class COBList
 					$sql = "SELECT * FROM Slips WHERE slipid = ?" ;
 					$stmt = $this->pdo->prepare ($sql);
 					$stmt->execute([trim($slip)]);
-					if ($stmt->fetchColumn()) {
+					$result = $stmt->fetch();
+					if ($result) {
 						//found slip exists so check if same unit
-						
+						if ($result["unit"] == $row[7]) {
+							// same unit so concatenate name if different
+							if (!($result["names"] == $row[6])) {
+								//different name
+								$id = $result["slid"];
+								$name = $result["names"] . "/" . $row[6];
+								$sql = "UPDATE Slips SET names = ? WHERE slid = ?";
+								$this->pdo->prepare($sql)->execute([$name, $id]);
+							}
+						} else {
+							// different unit so insert but add error_get_last
+							$this->addError('1','Slip error',$row[self::iUnit],$result["unit"],'Double booked');
+							$sql = "INSERT INTO Slips (unit, names, slipid, lift,phone,email)
+								VALUES ('" . $row[7] . "', '" . $row[6] . "', '" . trim($slip) . "', '" . $lift . "', '" . $phone . "', '" . $email . "')";
+							// execute the SQL statement - if returns fail then report
+							if ($this->pdo->query($sql)){
+							} else {
+								echo "Failed " . $slip . "<br>";
+							}
+
+						}	
 					} else {
 						//setup SQL statement for insert to Slips table
 						$sql = "INSERT INTO Slips (unit, names, slipid, lift,phone,email)
@@ -782,8 +808,8 @@ function opendb(&$checkmsg) {
 	//function to open PDO database and return PDO object
 	$host = 'localhost';
 	$db   = 'coblist';
-	$user = '';
-	$pass = '';
+	$user = 'cobuser';
+	$pass = 'sarasota888';
 	$charset = 'utf8';
 
 	$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
