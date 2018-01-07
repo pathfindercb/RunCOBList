@@ -145,14 +145,9 @@ INSERT INTO `SlipMaster` (`slipid`, `type`, `dock`, `class`, `condition`, `width
 ('S03a', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S03b', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S04', 'Slip', 'South Dock', 'D', 'Normal', 14, 0, '2016-12-08 08:33:13'),
-('S05a', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
-('S05b', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S06a', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S06b', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
-('S07a', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
-('S07b', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S09', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-08 08:33:13'),
-('S10', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S11', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S12', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S13', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-08 08:33:13'),
@@ -169,7 +164,6 @@ INSERT INTO `SlipMaster` (`slipid`, `type`, `dock`, `class`, `condition`, `width
 ('S24', 'Slip', 'South Dock', 'E', 'No Finger Pier', 14, 0, '2016-12-08 08:33:13'),
 ('S25', 'Slip', 'South Dock', 'E', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('S27', 'Slip', 'South Dock', 'E', 'No finger pier', 14, 0, '2016-12-08 08:33:13'),
-('S08', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-15 08:42:10'),
 ('N01b', 'Kayak', 'North Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('N05b', 'Kayak', 'North Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('N09b', 'Kayak', 'North Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
@@ -186,7 +180,13 @@ INSERT INTO `SlipMaster` (`slipid`, `type`, `dock`, `class`, `condition`, `width
 ('934', 'Slip', 'MS', 'M', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('936', 'Slip', 'MS', 'M', 'Normal', 14, 0, '2016-12-08 08:33:13'),
 ('938', 'Slip', 'MS', 'M', 'Normal', 14, 0, '2016-12-08 08:33:13'),
-('940', 'Slip', 'MS', 'M', 'Normal', 14, 0, '2016-12-08 08:33:13');
+('940', 'Slip', 'MS', 'M', 'Normal', 14, 0, '2016-12-08 08:33:13'),
+('S07', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-08 08:33:13'),
+('S05', 'Slip', 'South Dock', 'C', 'Normal', 14, 0, '2016-12-08 08:33:13'),
+('S08a', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
+('S08b', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
+('S10b', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13'),
+('S10a', 'Kayak', 'South Dock', 'K', 'Normal', 14, 0, '2016-12-08 08:33:13');
 
 -- --------------------------------------------------------
 
