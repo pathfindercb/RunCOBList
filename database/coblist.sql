@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net
 --
 -- Host: localhost:3306
--- Generation Time: May 11, 2017 at 06:22 PM
--- Server version: 5.6.35-cll-lve
+-- Generation Time: Jan 16, 2018 at 07:27 AM
+-- Server version: 5.6.36-cll-lve
 -- PHP Version: 5.6.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -538,6 +538,26 @@ INSERT INTO `UnitMaster` (`Unit`, `Floor`, `Stack`, `Bldg`, `PropID`, `Count`, `
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `UserUnit`
+--
+
+CREATE TABLE IF NOT EXISTS `UserUnit` (
+  `userunitid` mediumint(9) NOT NULL AUTO_INCREMENT,
+  `unit` varchar(19) DEFAULT NULL,
+  `owner` varchar(5) DEFAULT NULL,
+  `lastname` varchar(30) DEFAULT NULL,
+  `firstname` varchar(30) DEFAULT NULL,
+  `email` varchar(50) DEFAULT NULL,
+  `cellphone` varchar(50) DEFAULT NULL,
+  `homephone` varchar(50) DEFAULT NULL,
+  `emergency` varchar(80) DEFAULT NULL,
+  `unitwatcher` varchar(80) NOT NULL,
+  PRIMARY KEY (`userunitid`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `WaitList`
 --
 
@@ -551,7 +571,7 @@ CREATE TABLE IF NOT EXISTS `WaitList` (
   `number` int(11) DEFAULT NULL,
   PRIMARY KEY (`wlid`),
   KEY `unit` (`unit`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=594 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1028 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
