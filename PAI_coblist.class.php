@@ -2,6 +2,7 @@
 /** Updated 20171214 for waitlist format
  *	Updated 20171221 Added check for zero owner count in UnitMaster*
  *	Updated 20180106 Fixed duplicate slip check
+ *	Updated for output filename with date
  * package    PAI_COBList
  * @license        Copyright © 2017 Pathfinder Associates, Inc.
  */
@@ -11,7 +12,7 @@ class COBList
      * Retrieves the CSV file exported by Manage Users and creates the Excel XML COBList
      */   
 	// Private Variables //
-		const iVersion = "3.0.4";
+		const iVersion = "3.0.5";
 		private $dbUser = array();
 		private $hdrUser = array();
 		private $dbRes = array();
@@ -43,6 +44,8 @@ class COBList
 		private $hdrPets = array();
 		private $dbVoter = array();
 		private $hdrVoter = array();
+		private $dbUnit = array();
+		private $hdrUnit = array();
 		private $pdo;
 
 	//Constants for fields in User tab
@@ -164,7 +167,8 @@ class COBList
 			return false;
 		}
 		if ($this->fullRun) {
-			// delete all records from Slips & WaitList table and reset owner count in UnitMaster
+			// delete all records from UserUnit, Slips & WaitList table and reset owner count in UnitMaster
+			$stmt = $this->pdo->query('DELETE FROM UserUnit');
 			$stmt = $this->pdo->query('DELETE FROM Slips');
 			$stmt = $this->pdo->query('DELETE FROM WaitList');
 			$stmt = $this->pdo->query('UPDATE UnitMaster SET count = 0, Owner = "", Renter = "", Voter = "", Address = "", CityStateZip = ""') ;
@@ -192,6 +196,7 @@ class COBList
 			$this->BuildStaff();
 			$this->BuildErr();
 			$this->BuildGrids();
+			$this->BuildUnit();
 		}
 			// now create Excel file
 		$this->CreateFile();
@@ -542,6 +547,127 @@ class COBList
 			}
 		}
 	}
+	
+	function BuildUnit() {
+		// scan dbUser to build UnitUser db and arrays
+		// build header
+		$temp = ($this->showInfo) ? 'Internal':'External';
+		$this->hdrUnit = array('Unit'=>'string', 'Owner'=>'string','Lastname'=>'string','Firstname'=>'string','Email'=>'string','Cellphone'=>'string', 'Homephone'=>'string','Emergency Contact'=>'string','Unit Watcher'=>'string');
+		
+		// step thru each line of the file
+		foreach ($this->dbUser as $row) {
+			// skip if gone or sold
+			if (stripos($row[7],"GONE")!== false) {
+				continue;
+			}
+			if (stripos($row[7],"SOLD")!== false) {
+				continue;
+			}
+			// if no unit then skip
+			if (empty($row[self::iUnit])){
+				continue;
+			}
+			// explode multiple units
+			$temp = $this->GetFullUnit($row[self::iUnit]);
+			foreach ($temp as $unit) {
+				// now add to UnitUser table
+				// insert User1
+				//check if name is already in db for this unit
+				$sql = "SELECT * FROM UserUnit WHERE unit = ? AND lastname = ? AND firstname = ?" ;
+				$stmt = $this->pdo->prepare ($sql);
+				$stmt->execute(array($row[7],$row[6],$row[3]));
+				$result = $stmt->fetch();
+				if ($result) {
+				} else {
+				// decide if include email and phone based on user Profile settings if showInfo property is set = false
+				$cphone = "";
+				$hphone = "";
+				$email = "";
+				if ($this->showInfo) {
+					$hphone = $row[self::iHomePhone];
+					$cphone = $row[self::iUser1CellPhone];
+					$email = $row[self::iEmail];
+				} elseif ($row[self::iShowProfile]=='Yes') {
+						if($row[self::iShowPhone]=='Yes') {
+							$hphone = $row[self::iHomePhone];
+							$cphone = $row[self::iUser1CellPhone];
+						}
+						if($row[self::iShowEmail]=='Yes') {
+							$email = $row[self::iEmail];
+						}
+					}
+				$sql = "INSERT INTO UserUnit (unit, owner, lastname, firstname, email, cellphone, homephone, emergency, unitwatcher)
+						VALUES (:unit, :owner, :lname, :fname, :email, :cell, :home, :emer, :watch)";
+				// execute the SQL statement - if returns fail then report
+				$stmt = $this->pdo->prepare ($sql);
+				if ($stmt->execute(array(
+					"unit" => $unit,
+					"owner" => $row[30],
+					"lname" => $row[6],
+					"fname" => $row[3],
+					"email" => $email,
+					"cell" => $cphone,
+					"home" => $hphone,
+					"emer" => substr($row[33],0,50),
+					"watch" => substr($row[34],0,50)))) {
+				} else {
+					error_log ("Failed " . $unit );
+				}
+				}
+				// insert User2 if exists
+				if (strlen($row[15])>0 ){
+					//check if name is already in db for this unit
+					$sql = "SELECT * FROM UserUnit WHERE unit = ? AND lastname = ? AND firstname = ?" ;
+					$stmt = $this->pdo->prepare ($sql);
+					$stmt->execute(array($row[7],$row[15],$row[14]));
+					$result = $stmt->fetch();
+					if ($result) {
+						continue;
+					}
+					// decide if include email and phone based on user Profile settings if showInfo property is set = false
+					$cphone = "";
+					$email = "";
+					if ($this->showInfo) {
+						$cphone = $row[self::iUser2CellPhone];
+						$email = $row[self::iUser2Email];
+					} elseif ($row[self::iShowProfile]=='Yes') {
+							if($row[self::iShowPhone]=='Yes') {
+								$cphone = $row[self::iUser2CellPhone];
+							}
+							if($row[self::iShowEmail]=='Yes') {
+								$email = $row[self::iUser2Email];
+							}
+					}
+					$sql = "INSERT INTO UserUnit (unit, owner, lastname, firstname, email, cellphone, homephone, emergency, unitwatcher)
+							VALUES (:unit, :owner, :lname, :fname, :email, :cell, :home, :emer, :watch)";
+					// execute the SQL statement - if returns fail then report
+					$stmt = $this->pdo->prepare ($sql);
+					if ($stmt->execute(array(
+						"unit" => $unit,
+						"owner" => $row[30],
+						"lname" => $row[15],
+						"fname" => $row[14],
+						"email" => $email,
+						"cell" => $cphone,
+						"home" => $hphone,
+						"emer" => substr($row[33],0,50),
+						"watch" => substr($row[34],0,50)))) {
+					} else {
+						error_log ("Failed " . $unit );
+					}
+				}
+				
+		}
+		//now query to dbUnit
+		$query1 = $this->pdo->prepare("SELECT b.unit, a.owner, a.lastname, a.firstname, a.email, a.cellphone, a.homephone, a.emergency, a.unitwatcher
+							FROM UnitMaster b
+							LEFT OUTER JOIN UserUnit a ON a.unit = b.unit
+							ORDER BY b.unit");
+		$query1->execute();
+		$this->dbUnit = $query1->fetchALL(PDO::FETCH_ASSOC);
+		}
+		return;
+	}
 
 	function AddToGrid($row)
 	{
@@ -557,7 +683,7 @@ class COBList
 	{
 		// Include the required Class file
 		include_once('PAI_xlsxwriter.class.php');
-		$filename = "UserAddresses.xlsx";
+		$filename = "UserAddresses" . date('Ymd') . ".xlsx";
 		header('Content-disposition: attachment; filename="'.XLSXWriter::sanitize_filename($filename).'"');
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 		header('Content-Transfer-Encoding: binary');
@@ -588,6 +714,13 @@ class COBList
 			$writer->writeSheetRow('Listing',array(date('m/d/y'),'Condo on the Bay Owner & Renter Listing'),$h1style);
 			$writer->writeSheetRow('Listing',array_keys($this->hdrRes),$hstyle);
 			$writer->writeSheet($this->dbRes,'Listing',$this->hdrRes,true);
+			
+			$writer->setColWidths('Units',array(20,10,20,15,30,15,15,30,30));
+			$writer->writeSheetHeader('Units',$this->hdrUnit,true);
+			$temp = ($this->showInfo) ? 'Internal':'External';
+			$writer->writeSheetRow('Units',array(date('m/d/y'),$temp,'Condo on the Bay Unit Listing'),$h1style);
+			$writer->writeSheetRow('Units',array_keys($this->hdrUnit),$hstyle);
+			$writer->writeSheet($this->dbUnit,'Units',$this->hdrUnit,true);
 			
 			$writer->setColWidths('Renter',array(12,12,20,15,15,15,15,30,30,30));
 			$writer->writeSheetHeader('Renter',$this->hdrRenter,true);
@@ -665,7 +798,7 @@ class COBList
 			if (count($temp)!==2) {
 				$temp[0]  = "";
 				$temp[1]  = "";
-				$this->addError('4','2ndAddress format',$row[self::iUnit],$row[self::iUser1LastName],$row[self::i2ndAddress]);
+				$this->addError('10','2ndAddress format',$row[self::iUnit],$row[self::iUser1LastName],$row[self::i2ndAddress]);
 			}
 		}
 	} else {
