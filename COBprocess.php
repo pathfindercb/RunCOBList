@@ -1,12 +1,13 @@
 <?php
-// Process COBList 20170514
+// Process COBList 20180325
 include ('PAI_coblist.class.php');
 register_shutdown_function('shutDownFunction');
 
 $mCOB = new COBList();
 if ($mCOB->Checkfile($msg)) {
-	$mCOB->showInfo = $_POST['show'];
-	$mCOB->fullRun = $_POST['run'];
+	$mCOB->logging = false;
+	$mCOB->showInfo = isset($_POST['showinfo']);
+	$mCOB->fullRun = isset($_POST['fullrun']);
 	if ($mCOB->ProcessFile($msg)) {
 	} else {
 	error_log ($_SERVER['REMOTE_ADDR'] . '=' . $msg,0);

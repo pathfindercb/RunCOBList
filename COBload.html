@@ -1,0 +1,22 @@
+<html>
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=us-ascii">
+<title>Run COBList</title>
+</head>
+
+<body  onload="checksrc()">
+
+
+<p><strong>Condo on the Bay - Run COBList</strong></p>
+<p>Use this form to upload the UserExport CSV file and download the COBList Excel file</p>
+<p>  First export from Manage Users -- just Select All then Export Selected for a full run</p>
+<p>   (you can do a partial export from Manage Users (Owner=Yes) for labels with limited error checking)</p>
+   <form method="post" action="COBprocess.php" enctype="multipart/form-data">
+		<input type="checkbox" name="showinfo" checked value="1"> Show slip/kayak phone & email for internal use. Uncheck to suppress phone & email by owner's display preference <br><p><p>
+		<input type="checkbox" name="fullrun" checked value="1"> Uncheck if running from a partial export for labels, e.g., only Owners = Yes <br><p><p>
+		<input type="file" name="import" id="fileSelect">
+		<input type="submit" name="submit" value="Click to Run">
+	</form>
+</body>
+</html>
+
